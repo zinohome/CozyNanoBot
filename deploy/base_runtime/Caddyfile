@@ -1,0 +1,7 @@
+# CozyNanoBot 反向代理配置
+# 端口：
+#   :8080 → cozy_nanobot:8080（nanobot serve）
+
+:8080 {
+	reverse_proxy cozy_nanobot:8080
+}

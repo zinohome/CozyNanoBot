@@ -1,0 +1,46 @@
+# VCS metadata
+.git
+.gitignore
+.gitmodules
+
+# Python artefacts
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.egg-info/
+.venv/
+.pytest_cache/
+.coverage
+coverage.xml
+
+# Secrets / local state
+.env
+*.log
+.patches-applied
+
+# Tests & docs (not needed at runtime)
+tests/
+docs/
+*.md
+!README.md
+
+# Upstream noise — 仅保留 nanobot 源码所需目录
+upstream/nanobot/.git
+upstream/nanobot/.github
+upstream/nanobot/tests
+upstream/nanobot/docs
+upstream/nanobot/images
+upstream/nanobot/webui/node_modules
+upstream/nanobot/webui/.next
+upstream/nanobot/webui/dist
+upstream/nanobot/build
+upstream/nanobot/dist
+upstream/nanobot/**/__pycache__
+
+# Deploy dir — 构建镜像时不需要部署配置
+deploy/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/

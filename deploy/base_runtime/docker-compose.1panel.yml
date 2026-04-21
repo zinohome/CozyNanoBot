@@ -1,0 +1,78 @@
+# CozyNanoBot Base Runtime
+# 1Panel 专用 Docker Compose 编排文件
+# 数据存储：/data/CozyNanoBot/
+# 网络：cozyengine-network（外部预建网络，与 CozyEngineV2 生态共用）
+
+services:
+
+  cozy_nanobot:
+    image: cozy-nanobot:latest
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    container_name: cozy_nanobot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # LLM provider — 至少提供一种
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY required (see .env.example)}
+      # 可选：指向容器内的 nanobot 配置文件（默认已打包在镜像 /app/config/nanobot.yaml）
+      NANOBOT_CONFIG: ${NANOBOT_CONFIG:-/app/config/nanobot.yaml}
+      # nanobot workspace — 持久化到 /data/CozyNanoBot/workspace
+      NANOBOT_WORKSPACE: /workspace
+      HOST: 0.0.0.0
+      PORT: "8080"
+    command:
+      - nanobot
+      - serve
+      - -c
+      - /app/config/nanobot.yaml
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+    ports:
+      - "8080:8080"
+    volumes:
+      # nanobot workspace 持久化目录
+      - /data/CozyNanoBot/workspace:/workspace
+      # 可选：挂载外部 nanobot.yaml 覆盖镜像内默认配置（取消注释即可）
+      # - ./nanobot.yaml:/app/config/nanobot.yaml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - cozyengine-network
+    labels:
+      createdBy: "Apps"
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+        reservations:
+          memory: 256m
+
+  caddy:
+    image: caddy:alpine
+    container_name: cozy_nanobot_caddy
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /data/CozyNanoBot/caddy/data:/data
+      - /data/CozyNanoBot/caddy/config:/config
+    depends_on:
+      - cozy_nanobot
+    networks:
+      - cozyengine-network
+    labels:
+      createdBy: "Apps"
+
+networks:
+  cozyengine-network:
+    external: true
