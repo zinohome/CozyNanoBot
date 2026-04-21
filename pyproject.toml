@@ -1,0 +1,35 @@
+[project]
+name = "cozy-nanobot"
+version = "0.1.0"
+description = "CozyEngineV2 的小脑服务：nanobot 之上的 Cozy 层 + 自定义 MCP 工具"
+requires-python = ">=3.11"
+
+dependencies = [
+    # 官方 MCP SDK（构建 stdio MCP servers）
+    "mcp>=1.0",
+    # 我们的 MCP server 代码需要这些；nanobot 本身通过 upstream/ 安装
+    "pydantic>=2.9",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "httpx>=0.27",
+    "ruff>=0.7",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "integration: 需要真实启动 nanobot serve 的测试",
+]

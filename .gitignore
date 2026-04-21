@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+.pytest_cache/
+.coverage
+coverage.xml
+.DS_Store
+*.log
+.env
+!.env.example
+.patches-applied
+upstream/nanobot/**/__pycache__/
+upstream/nanobot/build/
+upstream/nanobot/dist/

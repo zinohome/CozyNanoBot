@@ -1,0 +1,4 @@
+[submodule "upstream/nanobot"]
+	path = upstream/nanobot
+	url = https://github.com/HKUDS/nanobot.git
+	shallow = true

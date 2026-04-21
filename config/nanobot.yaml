@@ -1,0 +1,47 @@
+# CozyNanoBot 运行配置 — 由 `nanobot serve -c config/nanobot.yaml` 加载
+# Schema 参考 upstream/nanobot/nanobot/config/schema.py 的 Config 类
+
+agents:
+  defaults:
+    # LLM 模型（provider 会自动匹配）
+    model: gpt-4o-mini
+    max_tool_iterations: 5
+    context_window_tokens: 128000
+    workspace: ~/.cozy-nanobot/workspace
+
+providers:
+  openai:
+    api_key: ${OPENAI_API_KEY}       # 环境变量插值（如支持）；不支持则直接写或手填
+
+api:
+  host: 0.0.0.0
+  port: 8080
+  timeout: 120.0
+
+tools:
+  # nanobot 内置工具（按需关开）
+  web:
+    enable: false
+  exec:
+    enable: false
+  my:
+    enable: false
+  restrict_to_workspace: true
+
+  # ★ 我们的三个 MCP servers
+  mcp_servers:
+    weather:
+      type: stdio
+      command: python
+      args: ["-m", "cozy_mcp_tools.weather"]
+      tool_timeout: 10
+    search:
+      type: stdio
+      command: python
+      args: ["-m", "cozy_mcp_tools.search"]
+      tool_timeout: 10
+    calculator:
+      type: stdio
+      command: python
+      args: ["-m", "cozy_mcp_tools.calculator"]
+      tool_timeout: 10
