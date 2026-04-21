@@ -11,7 +11,12 @@ agents:
 
 providers:
   openai:
-    api_key: ${OPENAI_API_KEY}       # 环境变量插值（如支持）；不支持则直接写或手填
+    # api_key / api_base 留空（pydantic-settings 不做 yaml ${} 插值）
+    # 通过以下环境变量注入（docker-compose 里映射）：
+    #   NANOBOT_PROVIDERS__OPENAI__API_KEY    ← 我们的 OPENAI_API_KEY
+    #   NANOBOT_PROVIDERS__OPENAI__API_BASE   ← 我们的 OPENAI_BASE_URL（可选）
+    api_key: ""
+    api_base: ""
 
 api:
   host: 0.0.0.0

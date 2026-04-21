@@ -15,8 +15,10 @@ services:
     env_file:
       - .env
     environment:
-      # LLM provider — 至少提供一种
-      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY required (see .env.example)}
+      # nanobot 用 pydantic-settings 的 NANOBOT_ 前缀 + __ 嵌套分隔符读 env
+      # 从我们标准的 OPENAI_* env 桥接到 NANOBOT_* 命名空间
+      NANOBOT_PROVIDERS__OPENAI__API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY required (see .env.example)}
+      NANOBOT_PROVIDERS__OPENAI__API_BASE: ${OPENAI_BASE_URL:-}
       # 可选：指向容器内的 nanobot 配置文件（默认已打包在镜像 /app/config/nanobot.yaml）
       NANOBOT_CONFIG: ${NANOBOT_CONFIG:-/app/config/nanobot.yaml}
       # nanobot workspace — 持久化到 /data/CozyNanoBot/workspace
