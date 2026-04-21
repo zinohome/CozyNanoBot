@@ -1,7 +1,7 @@
 # CozyNanoBot Base Runtime
 # 1Panel 专用 Docker Compose 编排文件
 # 数据存储：/data/CozyNanoBot/
-# 网络：cozyengine-network（外部预建网络，与 CozyEngineV2 生态共用）
+# 网络：1panel-network（外部预建网络，与 CozyEngineV2 生态共用）
 
 services:
 
@@ -46,7 +46,7 @@ services:
       retries: 3
       start_period: 30s
     networks:
-      - cozyengine-network
+      - 1panel-network
     labels:
       createdBy: "Apps"
     deploy:
@@ -69,10 +69,10 @@ services:
     depends_on:
       - cozy_nanobot
     networks:
-      - cozyengine-network
+      - 1panel-network
     labels:
       createdBy: "Apps"
 
 networks:
-  cozyengine-network:
+  1panel-network:
     external: true

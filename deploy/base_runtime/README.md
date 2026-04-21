@@ -6,7 +6,7 @@
 
 | 文件 | 作用 |
 |---|---|
-| `docker-compose.1panel.yml` | 1Panel 专用 Compose（网络 `cozyengine-network` 为 external） |
+| `docker-compose.1panel.yml` | 1Panel 专用 Compose（网络 `1panel-network` 为 external） |
 | `Caddyfile` | 反向代理（`:8080 → cozy_nanobot:8080`） |
 | `build.sh` | 构建 `cozy-nanobot:latest` 镜像 |
 | `.env.example` | 模板；部署前复制为 `.env` 并填充 key |
@@ -15,7 +15,7 @@
 
 ```bash
 # 1) 准备外部网络（若尚未存在）
-docker network create cozyengine-network || true
+docker network create 1panel-network || true
 
 # 2) 准备 .env
 cp .env.example .env
@@ -62,5 +62,5 @@ curl -fsS http://127.0.0.1:8080/health
 ## Troubleshooting
 
 - **`docker build` 失败 / submodule 缺失**：确保在仓库根路径执行过 `git submodule update --init --recursive`（`build.sh` 会自动做，但若无网络会失败）。
-- **`git network cozyengine-network not found`**：先执行 `docker network create cozyengine-network`。
+- **`git network 1panel-network not found`**：先执行 `docker network create 1panel-network`。
 - **`/health` 不通**：nanobot serve 启动约需 5–15s，等 `start_period`（30s）后再看。
