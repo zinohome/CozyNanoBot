@@ -36,10 +36,20 @@ def _translate_condition(en: str) -> str:
 
 @mcp.tool()
 def weather(city: str) -> dict[str, Any]:
-    """查询指定城市的当前天气（wttr.in 真 API）。
+    """查询任何城市的当前天气。**只要用户提到城市 + 冷/热/下雨/温度/湿度/穿什么，就调这个工具**，
+    不要从训练知识或闲聊式回答代替。中文俗语请先映射到正式城市名：
+    魔都→上海、帝都→北京、羊城/花城→广州、山城→重庆、蓉城→成都。
+
+    触发示例：
+    - "查上海天气" / "北京温度多少度"
+    - "上海冷吗" / "魔都冷吗" / "广州适合穿什么" ← 间接询问也要调
+    - "Tokyo weather" / "weather in Shanghai"
+    - 繁体 "查上海天氣" 照调（city 繁简一致）
+
+    不触发的仅：过去天气 / 天气预报 / 假设 / 比喻（"心情的天气"）/ 无城市线索。
 
     Args:
-        city: 城市名（中英文均可），例如 上海 / Tokyo / New York
+        city: 城市名（已映射俗语后），例如 上海 / Tokyo / New York
 
     Returns:
         成功: {city, temperature, condition, humidity, wind, feels_like, source}

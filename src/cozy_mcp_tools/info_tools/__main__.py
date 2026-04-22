@@ -33,11 +33,18 @@ _TZ_ALIASES = {
 
 @mcp.tool()
 def current_time(timezone: str = "Asia/Shanghai") -> dict[str, Any]:
-    """获取指定时区的当前时间。
+    """获取当前时间。**你对"现在几点/几号/星期几"永远不知道，必须调这个工具，不要猜**。
+
+    触发场景（全部必须调）：
+    - "现在几点" / "今天几号" / "今天是星期几" / "几号了"
+    - "东京现在几点" / "纽约是白天还是晚上"
+    - 任何隐含"当前时间"的问题
+
+    绝不从对话上下文猜日期 —— 即使 system prompt 里有某个日期，也可能过时。
 
     Args:
-        timezone: 时区名（IANA 格式，如 Asia/Shanghai / UTC / America/New_York），
-                  或常用别名（beijing / tokyo / nyc / london ...）
+        timezone: 时区名（IANA 如 Asia/Shanghai / America/New_York），
+                  或别名（beijing / tokyo / nyc / london ...）。默认 Asia/Shanghai。
 
     Returns:
         {timezone, datetime (ISO 8601), weekday, unix}
