@@ -13,6 +13,8 @@ dependencies = [
     # weather / search / web_fetch 需要 HTTP + HTML 解析
     "httpx>=0.27",
     "beautifulsoup4>=4.12",
+    # news tool: RSS parsing
+    "feedparser>=6.0",
 ]
 
 [project.optional-dependencies]

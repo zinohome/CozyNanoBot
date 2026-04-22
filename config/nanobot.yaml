@@ -60,3 +60,13 @@ tools:
       command: python
       args: ["-m", "cozy_mcp_tools.web_fetch"]
       tool_timeout: 15
+    translate:
+      type: stdio
+      command: python
+      args: ["-m", "cozy_mcp_tools.translate"]
+      tool_timeout: 12
+    news:
+      type: stdio
+      command: python
+      args: ["-m", "cozy_mcp_tools.news"]
+      tool_timeout: 15
