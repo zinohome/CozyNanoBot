@@ -23,6 +23,8 @@ COPY src              /app/src
 COPY config           /app/config
 COPY patches          /app/patches
 COPY scripts          /app/scripts
+# ★ skills/ 需落到 workspace/skills/（nanobot 首次启动会在 ~/.cozy-nanobot/workspace/ 初始化）
+COPY skills           /app/.cozy-nanobot/workspace/skills
 
 # --- 套 patch（容器内执行，保证镜像包含补丁；idempotent：已套则跳过）---
 # 不依赖 git repo：用 patch(1) 的 --dry-run 探测已套过的 patch

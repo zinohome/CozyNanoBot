@@ -33,7 +33,7 @@ tools:
     enable: false
   restrict_to_workspace: true
 
-  # ★ 我们的三个 MCP servers
+  # ★ 我们的 MCP servers（混合粒度：网 IO 独立，轻工具合并进 info_tools）
   mcp_servers:
     weather:
       type: stdio
@@ -44,9 +44,19 @@ tools:
       type: stdio
       command: python
       args: ["-m", "cozy_mcp_tools.search"]
-      tool_timeout: 10
+      tool_timeout: 12
     calculator:
       type: stdio
       command: python
       args: ["-m", "cozy_mcp_tools.calculator"]
-      tool_timeout: 10
+      tool_timeout: 5
+    info_tools:
+      type: stdio
+      command: python
+      args: ["-m", "cozy_mcp_tools.info_tools"]
+      tool_timeout: 5
+    web_fetch:
+      type: stdio
+      command: python
+      args: ["-m", "cozy_mcp_tools.web_fetch"]
+      tool_timeout: 15

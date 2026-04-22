@@ -10,6 +10,9 @@ dependencies = [
     # 我们的 MCP server 代码需要这些；nanobot 本身通过 upstream/ 安装
     "pydantic>=2.9",
     "pyyaml>=6.0",
+    # weather / search / web_fetch 需要 HTTP + HTML 解析
+    "httpx>=0.27",
+    "beautifulsoup4>=4.12",
 ]
 
 [project.optional-dependencies]
