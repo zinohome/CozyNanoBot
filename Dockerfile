@@ -25,7 +25,11 @@ COPY patches          /app/patches
 COPY scripts          /app/scripts
 # ★ skills/ 需落到 workspace/skills/（nanobot 首次启动会在 ~/.cozy-nanobot/workspace/ 初始化）
 COPY skills           /app/.cozy-nanobot/workspace/skills
-# ★ 自定义 TOOLS.md / USER.md 覆盖 nanobot 默认模板（fire-rate bias + 用户画像）
+# ★ 自定义 SOUL/TOOLS/USER.md 覆盖 nanobot 默认模板
+#   SOUL.md: 精简到"工具执行器"身份，不与 Brain 的人格冲突
+#   TOOLS.md: fire-rate bias + 每工具触发细则
+#   USER.md: timezone / language 画像（默认中文 + Asia/Shanghai）
+COPY workspace-assets/SOUL.md  /app/.cozy-nanobot/workspace/SOUL.md
 COPY workspace-assets/TOOLS.md /app/.cozy-nanobot/workspace/TOOLS.md
 COPY workspace-assets/USER.md  /app/.cozy-nanobot/workspace/USER.md
 
