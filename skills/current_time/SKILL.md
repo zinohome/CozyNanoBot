@@ -1,34 +1,27 @@
 ---
 name: current_time
-description: Get current datetime in a specific timezone. Use when user asks for the current time, date, day of week, or "is it morning/night" in a location.
+description: Timezone input conventions + response formatting for current_time.
 always: true
 ---
 
-# Current Time
+# Current Time Response Formatting
 
-Call `mcp_info_tools_current_time(timezone)` to get wall-clock time.
+Fire-rate rules are in `TOOLS.md` and docstring — this file covers **时区输入 + 响应风格**。
 
-## When to Call
+## Trigger Examples (冗余提醒 — 强化 fire rate 信号)
 
-- "现在几点" / "今天几号" / "今天星期几"
-- "Tokyo 现在几点" / "纽约现在是白天还是晚上"
-- 时区换算前置：算"北京 10 点对应洛杉矶几点"先取两地 current_time
-
-## Do NOT Call
-
-- **过去 / 未来**: "昨天几号" / "下周一是几号" — 从用户上下文推算或用 calculator
-- **持续时间**: "我等了多久" — 不是当前时间
-- **相对时间**: "几分钟前" — 根据上下文推理
+- "现在几点" / "今天几号" / "今天星期几" / "星期几了" → **必调**
+- "Tokyo 现在几点" / "纽约白天还是晚上" → **必调**
 
 ## Timezone Input
 
 首选 IANA 标准名：`Asia/Shanghai`, `America/New_York`, `Europe/London`, `UTC`
 
 支持别名（工具内部映射）：
-`beijing`, `shanghai`, `tokyo`, `nyc`, `la`, `london`, `paris`, `utc` 等。
+`beijing`, `shanghai`, `tokyo`, `nyc`, `la`, `london`, `paris`, `utc`
 中文 "北京" / "上海" 也支持。
 
-**不确定时默认 `Asia/Shanghai`**（用户主要在中国）。
+**用户没指定时默认 `Asia/Shanghai`**（USER.md 已写明）。
 
 ## Tool Output Schema
 
@@ -40,3 +33,7 @@ Call `mcp_info_tools_current_time(timezone)` to get wall-clock time.
 ## Response Style
 
 > 现在是 2026 年 4 月 22 日 14:30（周三，Asia/Shanghai）。
+
+对 "今天星期几" 类简短问题，可更精简：
+
+> 今天是周三。
