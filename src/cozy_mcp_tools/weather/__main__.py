@@ -6,12 +6,13 @@ wttr.in 是公开服务（无需 API key）。支持 JSON 输出 format=j1。
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-from cozy_mcp_tools._common import setup_logging
+from cozy_mcp_tools._common import emit_log, setup_logging
 
 logger = setup_logging("weather")
 mcp = FastMCP("cozy-weather")
@@ -56,6 +57,8 @@ def weather(city: str) -> dict[str, Any]:
         失败: {city, error}
     """
     logger.info("weather query: %s", city)
+    emit_log(tool="weather", action="start", city=city)
+    _start = time.monotonic()
     try:
         resp = httpx.get(
             f"{_WTTR_BASE}/{city}",
@@ -66,7 +69,7 @@ def weather(city: str) -> dict[str, Any]:
         resp.raise_for_status()
         data = resp.json()
         current = data["current_condition"][0]
-        return {
+        result = {
             "city": city,
             "temperature": int(current["temp_C"]),
             "condition": _translate_condition(current["weatherDesc"][0]["value"]),
@@ -75,14 +78,35 @@ def weather(city: str) -> dict[str, Any]:
             "feels_like": int(current["FeelsLikeC"]),
             "source": "wttr.in",
         }
+        emit_log(
+            tool="weather", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="ok", city=city,
+        )
+        return result
     except httpx.TimeoutException:
         logger.warning("weather timeout for %s", city)
+        emit_log(
+            tool="weather", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error="timeout", city=city,
+        )
         return {"city": city, "error": "查询超时（6s），请稍后再试"}
     except httpx.HTTPStatusError as e:
         logger.warning("weather http error %s for %s", e.response.status_code, city)
+        emit_log(
+            tool="weather", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error=f"http_{e.response.status_code}", city=city,
+        )
         return {"city": city, "error": f"未找到城市「{city}」或服务异常 (HTTP {e.response.status_code})"}
     except Exception as e:
         logger.exception("weather unexpected error")
+        emit_log(
+            tool="weather", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error=f"{type(e).__name__}: {str(e)[:200]}", city=city,
+        )
         return {"city": city, "error": f"查询失败: {type(e).__name__}"}
 
 

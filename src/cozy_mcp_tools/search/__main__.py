@@ -6,13 +6,14 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import httpx
 from bs4 import BeautifulSoup
 from mcp.server.fastmcp import FastMCP
 
-from cozy_mcp_tools._common import setup_logging
+from cozy_mcp_tools._common import emit_log, setup_logging
 
 logger = setup_logging("search")
 mcp = FastMCP("cozy-search")
@@ -41,6 +42,8 @@ def search(query: str, top_k: int = 5) -> dict[str, Any]:
     """
     top_k = max(1, min(top_k, 10))
     logger.info("search: query=%s top_k=%d", query, top_k)
+    emit_log(tool="search", action="start", query=query, top_k=top_k)
+    _start = time.monotonic()
     try:
         resp = httpx.post(
             _DDG_URL,
@@ -65,14 +68,33 @@ def search(query: str, top_k: int = 5) -> dict[str, Any]:
             results.append({"title": title, "url": url, "snippet": snippet})
             if len(results) >= top_k:
                 break
+        duration_ms = round((time.monotonic() - _start) * 1000, 2)
         if not results:
+            emit_log(
+                tool="search", action="end", duration_ms=duration_ms,
+                status="ok", query=query, result_count=0,
+            )
             return {"query": query, "results": [], "note": "未找到结果"}
+        emit_log(
+            tool="search", action="end", duration_ms=duration_ms,
+            status="ok", query=query, result_count=len(results),
+        )
         return {"query": query, "results": results}
     except httpx.TimeoutException:
         logger.warning("search timeout: %s", query)
+        emit_log(
+            tool="search", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error="timeout", query=query,
+        )
         return {"query": query, "error": "搜索超时（8s），请稍后再试"}
     except Exception as e:
         logger.exception("search error")
+        emit_log(
+            tool="search", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error=f"{type(e).__name__}: {str(e)[:200]}", query=query,
+        )
         return {"query": query, "error": f"搜索失败: {type(e).__name__}"}
 
 
