@@ -1,0 +1,125 @@
+diff --git a/nanobot/agent/loop.py b/nanobot/agent/loop.py
+index 80a9b46..ebf1d93 100644
+--- a/nanobot/agent/loop.py
++++ b/nanobot/agent/loop.py
+@@ -263,6 +263,13 @@ class AgentLoop:
+         # server) may clear this before calling process_direct and read it
+         # afterwards to populate response metadata.executed_tools.
+         self._last_run_tools: list[dict[str, Any]] = []
++        # Cozy patch (allowlist): per-request whitelist of tool names the
++        # caller (CozyEngineV2 Brain) permits for this turn. The API server
++        # sets this field INSIDE the session lock before calling
++        # process_direct, and clears it after. None means "no restriction"
++        # (preserve legacy behaviour). An empty list means "no tools allowed"
++        # and every tool_call will be rejected with permission_denied.
++        self._allowed_tools: list[str] | None = None
+         self.commands = CommandRouter()
+         register_builtin_commands(self.commands)
+ 
+@@ -443,6 +450,9 @@ class AgentLoop:
+             retry_wait_callback=on_retry_wait,
+             checkpoint_callback=_checkpoint,
+             injection_callback=_drain_pending,
++            # Cozy patch (allowlist): thread the per-request whitelist down
++            # to the runner so _run_tool can short-circuit disallowed calls.
++            allowed_tools=self._allowed_tools,
+         ))
+         self._last_usage = result.usage
+         if result.stop_reason == "max_iterations":
+diff --git a/nanobot/agent/runner.py b/nanobot/agent/runner.py
+index d90c79f..5658cb8 100644
+--- a/nanobot/agent/runner.py
++++ b/nanobot/agent/runner.py
+@@ -74,6 +74,12 @@ class AgentRunSpec:
+     retry_wait_callback: Any | None = None
+     checkpoint_callback: Any | None = None
+     injection_callback: Any | None = None
++    # Cozy patch (allowlist): optional whitelist of tool names permitted for
++    # this run. None = unrestricted (legacy). [] = all tools blocked. Non-
++    # empty list restricts execution to listed names; any other tool_call the
++    # model emits is short-circuited with a permission_denied result and
++    # recorded in tool_events with status="denied".
++    allowed_tools: list[str] | None = None
+ 
+ 
+ @dataclass(slots=True)
+@@ -654,6 +660,24 @@ class AgentRunner:
+         external_lookup_counts: dict[str, int],
+     ) -> tuple[Any, dict[str, str], BaseException | None]:
+         _HINT = "\n\n[Analyze the error above and try a different approach.]"
++        # Cozy patch (allowlist): short-circuit disallowed tool calls before
++        # the registry dispatch. Returns a synthetic error string that gets
++        # zipped back into messages as a regular `role=tool` response so the
++        # model sees the rejection and (per instructions) stops retrying.
++        if spec.allowed_tools is not None and tool_call.name not in spec.allowed_tools:
++            allowed_str = ", ".join(spec.allowed_tools) if spec.allowed_tools else "<none>"
++            denial = (
++                f"Error: permission_denied: tool '{tool_call.name}' is not in the "
++                f"allowed_tools whitelist for this request. Allowed: [{allowed_str}]. "
++                f"Do not retry this tool; either pick an allowed tool or answer "
++                f"without tools."
++            )
++            event = {
++                "name": tool_call.name,
++                "status": "denied",
++                "detail": "not in allowed_tools whitelist",
++            }
++            return denial, event, None
+         lookup_error = repeated_external_lookup_error(
+             tool_call.name,
+             tool_call.arguments,
+diff --git a/nanobot/api/server.py b/nanobot/api/server.py
+index db36e84..5b74af5 100644
+--- a/nanobot/api/server.py
++++ b/nanobot/api/server.py
+@@ -221,6 +221,9 @@ async def handle_chat_completions(request: web.Request) -> web.Response:
+     model_name: str = request.app.get("model_name", "nanobot")
+ 
+     stream = False
++    # Cozy patch (allowlist): default to unrestricted; only the JSON body
++    # path overrides this when the client provides `allowed_tools`.
++    allowed_tools: list[str] | None = None
+     try:
+         if content_type.startswith("multipart/"):
+             text, media_paths, session_id, requested_model = await _parse_multipart(request)
+@@ -233,6 +236,14 @@ async def handle_chat_completions(request: web.Request) -> web.Response:
+             requested_model = body.get("model")
+             text, media_paths = _parse_json_content(body)
+             session_id = body.get("session_id")
++            # Cozy patch (allowlist): accept optional per-request tool
++            # whitelist. Brain passes list[str] of permitted tool names;
++            # any tool_call the model emits outside this set is rejected
++            # with permission_denied inside the runner. Missing / non-list
++            # values preserve legacy unrestricted behaviour.
++            _raw_allowed = body.get("allowed_tools")
++            if isinstance(_raw_allowed, list):
++                allowed_tools = [str(t) for t in _raw_allowed]
+     except ValueError as e:
+         return _error_json(400, str(e))
+     except _FileSizeExceeded as e:
+@@ -275,6 +286,12 @@ async def handle_chat_completions(request: web.Request) -> web.Response:
+             nonlocal stream_failed
+             try:
+                 async with session_lock:
++                    # Cozy patch (allowlist): stash the whitelist on the loop
++                    # INSIDE the lock so concurrent requests don't race on it.
++                    try:
++                        agent_loop._allowed_tools = allowed_tools
++                    except AttributeError:
++                        pass
+                     await asyncio.wait_for(
+                         agent_loop.process_direct(
+                             content=text,
+@@ -320,6 +337,12 @@ async def handle_chat_completions(request: web.Request) -> web.Response:
+                 agent_loop._last_run_tools.clear()
+             except AttributeError:
+                 pass
++            # Cozy patch (allowlist): stash per-request whitelist on the loop
++            # INSIDE the lock so concurrent requests can't race on it.
++            try:
++                agent_loop._allowed_tools = allowed_tools
++            except AttributeError:
++                pass
+             try:
+                 response = await asyncio.wait_for(
+                     agent_loop.process_direct(
