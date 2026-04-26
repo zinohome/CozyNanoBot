@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import feedparser
@@ -13,7 +14,7 @@ import httpx
 
 from mcp.server.fastmcp import FastMCP
 
-from cozy_mcp_tools._common import setup_logging
+from cozy_mcp_tools._common import emit_log, setup_logging
 
 logger = setup_logging("news")
 mcp = FastMCP("cozy-news")
@@ -142,6 +143,8 @@ def news(query: str = "", top_k: int = 5, category: str = "") -> dict[str, Any]:
 
     logger.info("news: query=%r top_k=%d category=%r feeds=%d",
                 query, top_k, category, len(feeds))
+    emit_log(tool="news", action="start", query=query, category=category, top_k=top_k)
+    _start = time.monotonic()
 
     items: list[dict[str, str]] = []
     for feed_meta in feeds:
@@ -159,12 +162,22 @@ def news(query: str = "", top_k: int = 5, category: str = "") -> dict[str, Any]:
             items.append(item)
 
     if not items:
+        emit_log(
+            tool="news", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="ok", result_count=0,
+        )
         return {
             "results": [],
             "note": "未找到匹配的新闻条目（可能 RSS 源全失败或关键词无命中）",
         }
 
     # 简单截断（不排序，各源交替的原始顺序已足够）
+    emit_log(
+        tool="news", action="end",
+        duration_ms=round((time.monotonic() - _start) * 1000, 2),
+        status="ok", result_count=len(items[:top_k]),
+    )
     return {"results": items[:top_k]}
 
 

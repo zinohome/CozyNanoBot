@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 from urllib.parse import urlparse
 
@@ -13,7 +14,7 @@ import httpx
 from bs4 import BeautifulSoup
 from mcp.server.fastmcp import FastMCP
 
-from cozy_mcp_tools._common import setup_logging
+from cozy_mcp_tools._common import emit_log, setup_logging
 
 logger = setup_logging("web_fetch")
 mcp = FastMCP("cozy-web-fetch")
@@ -59,6 +60,8 @@ def web_fetch(url: str, max_chars: int = _MAX_CHARS) -> dict[str, Any]:
     """
     max_chars = max(500, min(max_chars, 10000))
     logger.info("web_fetch: %s (max_chars=%d)", url, max_chars)
+    emit_log(tool="web_fetch", action="start", url=url)
+    _start = time.monotonic()
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https"):
         return {"url": url, "error": "只接受 http:// 或 https:// 开头的 URL"}
@@ -79,6 +82,11 @@ def web_fetch(url: str, max_chars: int = _MAX_CHARS) -> dict[str, Any]:
         truncated = len(content) > max_chars
         if truncated:
             content = content[:max_chars] + "…（已截断）"
+        emit_log(
+            tool="web_fetch", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="ok", url=url,
+        )
         return {
             "url": str(resp.url),
             "title": title,
@@ -87,11 +95,26 @@ def web_fetch(url: str, max_chars: int = _MAX_CHARS) -> dict[str, Any]:
             "bytes": len(resp.content),
         }
     except httpx.TimeoutException:
+        emit_log(
+            tool="web_fetch", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error="timeout", url=url,
+        )
         return {"url": url, "error": "抓取超时（10s）"}
     except httpx.HTTPStatusError as e:
+        emit_log(
+            tool="web_fetch", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error=f"http_{e.response.status_code}", url=url,
+        )
         return {"url": url, "error": f"HTTP {e.response.status_code}"}
     except Exception as e:
         logger.exception("web_fetch error")
+        emit_log(
+            tool="web_fetch", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error=f"{type(e).__name__}", url=url,
+        )
         return {"url": url, "error": f"抓取失败: {type(e).__name__}"}
 
 

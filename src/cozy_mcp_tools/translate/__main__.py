@@ -21,7 +21,7 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-from cozy_mcp_tools._common import setup_logging
+from cozy_mcp_tools._common import emit_log, setup_logging
 
 logger = setup_logging("translate")
 mcp = FastMCP("cozy-translate")
@@ -135,6 +135,8 @@ def translate(
         return {"error": "TENCENT_SECRET_ID/KEY not configured"}
 
     logger.info("translate: %s -> %s (len=%d)", source_lang, target_lang, len(text))
+    emit_log(tool="translate", action="start", source_lang=source_lang, target_lang=target_lang)
+    _start = time.monotonic()
 
     payload_dict = {
         "SourceText": text,
@@ -151,6 +153,12 @@ def translate(
         )
     except Exception as e:
         logger.exception("sign failed")
+        emit_log(
+            tool="translate", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error="sign_failed",
+            source_lang=source_lang, target_lang=target_lang,
+        )
         return {"error": f"签名生成失败: {type(e).__name__}"}
 
     headers = {
@@ -175,11 +183,22 @@ def translate(
         response = data.get("Response", {})
         if "Error" in response:
             err = response["Error"]
+            emit_log(
+                tool="translate", action="end",
+                duration_ms=round((time.monotonic() - _start) * 1000, 2),
+                status="error", error=f"api_{err.get('Code')}",
+                source_lang=source_lang, target_lang=target_lang,
+            )
             return {
                 "error": f"TMT API 错误: {err.get('Code')} - {err.get('Message')}"
             }
         translated = response.get("TargetText", "")
         resolved_src = response.get("Source", source_lang)
+        emit_log(
+            tool="translate", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="ok", source_lang=source_lang, target_lang=target_lang,
+        )
         return {
             "source_lang": resolved_src,
             "target_lang": target_lang,
@@ -189,12 +208,30 @@ def translate(
         }
     except httpx.TimeoutException:
         logger.warning("translate timeout")
+        emit_log(
+            tool="translate", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error="timeout",
+            source_lang=source_lang, target_lang=target_lang,
+        )
         return {"error": "翻译超时（10s），请稍后再试"}
     except httpx.HTTPStatusError as e:
         logger.warning("translate http error %s", e.response.status_code)
+        emit_log(
+            tool="translate", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error=f"http_{e.response.status_code}",
+            source_lang=source_lang, target_lang=target_lang,
+        )
         return {"error": f"翻译服务异常 (HTTP {e.response.status_code})"}
     except Exception as e:
         logger.exception("translate unexpected error")
+        emit_log(
+            tool="translate", action="end",
+            duration_ms=round((time.monotonic() - _start) * 1000, 2),
+            status="error", error=f"{type(e).__name__}",
+            source_lang=source_lang, target_lang=target_lang,
+        )
         return {"error": f"翻译失败: {type(e).__name__}"}
 
 
