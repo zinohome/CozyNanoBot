@@ -2,7 +2,10 @@ services:
   cozy-nanobot:
     build: .
     image: cozy-nanobot:latest
-    ports: ["8080:8080"]
+    ports: ["28080:8080"]
     env_file: [.env]
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      NANOBOT_PROVIDERS__OPENAI__API_KEY: ${OPENAI_API_KEY}
+      NANOBOT_PROVIDERS__OPENAI__API_BASE: ${OPENAI_BASE_URL:-}
