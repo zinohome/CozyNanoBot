@@ -6,7 +6,7 @@ always: true
 
 # Web Fetch Response Formatting
 
-Fire-rate rules are in `TOOLS.md` — this file covers **参数选择 + 响应风格**。
+This file covers **参数选择 + 响应风格**。
 
 ## Parameter: max_chars
 

@@ -6,13 +6,7 @@ always: true
 
 # Weather Response Formatting
 
-Fire-rate rules are in `TOOLS.md` and the tool's own description — this file only covers **response formatting**.
-
-## Trigger Examples (冗余提醒)
-
-- "查上海天气" / "北京温度" / "Tokyo weather" → **必调**
-- "上海冷吗" / "魔都冷吗" / "广州适合穿什么" → **必调**（间接询问也要 fire）
-- 俗语映射后再调：魔都=上海、帝都=北京、花城=广州、山城=重庆
+This file covers **response formatting** guidance.
 
 ## Tool Output Schema
 

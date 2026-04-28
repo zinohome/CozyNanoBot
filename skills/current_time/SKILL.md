@@ -6,12 +6,7 @@ always: true
 
 # Current Time Response Formatting
 
-Fire-rate rules are in `TOOLS.md` and docstring — this file covers **时区输入 + 响应风格**。
-
-## Trigger Examples (冗余提醒 — 强化 fire rate 信号)
-
-- "现在几点" / "今天几号" / "今天星期几" / "星期几了" → **必调**
-- "Tokyo 现在几点" / "纽约白天还是晚上" → **必调**
+This file covers **时区输入 + 响应风格**。
 
 ## Timezone Input
 

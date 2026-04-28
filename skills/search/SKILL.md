@@ -6,7 +6,7 @@ always: true
 
 # Search Response Formatting & Query Tips
 
-Fire-rate rules are in `TOOLS.md` — this file covers **query 构造 + 结果呈现**。
+This file covers **query 构造 + 结果呈现**。
 
 ## Query Construction
 

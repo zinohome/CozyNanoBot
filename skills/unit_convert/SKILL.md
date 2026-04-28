@@ -6,7 +6,7 @@ always: true
 
 # Unit Convert Response Formatting
 
-Fire-rate rules are in `TOOLS.md` — this file covers **支持的单位 + 响应风格**。
+This file covers **支持的单位 + 响应风格**。
 
 ## Supported Units
 

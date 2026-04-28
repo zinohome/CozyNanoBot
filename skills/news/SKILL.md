@@ -6,15 +6,7 @@ always: true
 
 # News Response Formatting
 
-Fire-rate rules are in `TOOLS.md` and the tool's own description — this file only covers **response formatting**.
-
-## Trigger Examples (冗余提醒)
-
-- "有什么新闻" / "最新头条" / "最近热点" → **必调**
-- "最近发生了什么大事" → **必调**
-- "科技圈最近有啥" → 调 `news(category="tech")`
-- "AI 最新消息" → 调 `news(query="AI")`
-- 不调：历史事件 / 某条具体新闻的评论（那是闲聊）
+This file covers **response formatting** guidance.
 
 ## Tool Output Schema
 
