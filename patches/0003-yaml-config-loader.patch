@@ -1,0 +1,27 @@
+diff --git a/nanobot/config/loader.py b/nanobot/config/loader.py
+index 4281b93..4405f38 100644
+--- a/nanobot/config/loader.py
++++ b/nanobot/config/loader.py
+@@ -1,6 +1,7 @@
+ """Configuration loading utilities."""
+ 
+ import json
++import yaml
+ import os
+ import re
+ from pathlib import Path
+@@ -43,9 +44,13 @@ def load_config(config_path: Path | None = None) -> Config:
+     if path.exists():
+         try:
+             with open(path, encoding="utf-8") as f:
+-                data = json.load(f)
++                if path.suffix in (".yaml", ".yml"):
++                    data = yaml.safe_load(f)
++                else:
++                    data = json.load(f)
+             data = _migrate_config(data)
+             config = Config.model_validate(data)
++            config = resolve_config_env_vars(config)
+         except (json.JSONDecodeError, ValueError, pydantic.ValidationError) as e:
+             logger.warning(f"Failed to load config from {path}: {e}")
+             logger.warning("Using default configuration.")
