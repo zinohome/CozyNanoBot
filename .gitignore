@@ -14,3 +14,13 @@ coverage.xml
 upstream/nanobot/**/__pycache__/
 upstream/nanobot/build/
 upstream/nanobot/dist/
+
+# Deploy env files (runtime secrets, never commit)
+deploy/**/.env
+
+# Shared secrets directory (must never be committed)
+.secrets/
+
+# Private keys and certificates
+*.key
+*.pem
