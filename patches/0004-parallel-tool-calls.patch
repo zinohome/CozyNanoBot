@@ -1,0 +1,11 @@
+diff --git a/nanobot/providers/openai_compat_provider.py b/nanobot/providers/openai_compat_provider.py
+--- a/nanobot/providers/openai_compat_provider.py
++++ b/nanobot/providers/openai_compat_provider.py
+@@ -420,6 +420,8 @@
+         if tools:
+             kwargs["tools"] = tools
+             kwargs["tool_choice"] = tool_choice or "auto"
++            # Cozy patch: allow LLM to issue multiple tool calls in one response
++            kwargs["parallel_tool_calls"] = True
+
+         return kwargs
