@@ -1,3 +1,11 @@
+# =============================================================================
+# 镜像仓库配置
+# IMAGE_REGISTRY: Docker 镜像仓库前缀（包含命名空间）
+#   本地开发（默认）: harbor.naivehero.top:8443/cozyai
+#   AWS 生产 (ECR) : 345182146241.dkr.ecr.ap-east-1.amazonaws.com/cozyai
+#   使用方法: 在 .env 文件中设置 IMAGE_REGISTRY=<仓库前缀>
+# =============================================================================
+
 name: cozynanobot
 
 # CozyNanoBot — MCP 工具执行引擎（Cerebellum）
@@ -18,7 +26,7 @@ x-logging: &default-logging
 services:
 
   nanobot:
-    image: harbor.naivehero.top:8443/cozyai/cozy-nanobot:latest
+    image: ${IMAGE_REGISTRY:-harbor.naivehero.top:8443/cozyai}/cozy-nanobot:latest
     container_name: cozynanobot
     restart: unless-stopped
     environment:
