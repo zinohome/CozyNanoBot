@@ -24,3 +24,6 @@ deploy/**/.env
 # Private keys and certificates
 *.key
 *.pem
+# Dev env files (runtime secrets, never commit)
+deploy/**/.env.dev
+*.env.dev
