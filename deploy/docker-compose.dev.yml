@@ -1,0 +1,51 @@
+# =============================================================================
+# 开发环境部署文件（Development）
+# nanobot 服务从本地源码构建。
+# 使用前复制 .env.dev.example 为 .env.dev 并填写配置。
+# =============================================================================
+
+name: cozynanobot-dev
+
+# CozyNanoBot 开发环境 — MCP 工具执行引擎（Cerebellum）
+# 网络：1panel-network（外部共享）
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "50m"
+    max-file: "5"
+
+services:
+
+  nanobot:
+    build:
+      context: /data/CozyNanoBot
+    container_name: cozynanobot-dev
+    restart: unless-stopped
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-http://10.11.11.154:9090/v1}
+      NANOBOT_PROVIDERS__OPENAI__API_KEY: ${OPENAI_API_KEY:-}
+      NANOBOT_PROVIDERS__OPENAI__API_BASE: ${OPENAI_BASE_URL:-http://10.11.11.154:9090/v1}
+      NANOBOT_AGENTS__DEFAULTS__MODEL: ${NANOBOT_MODEL:-gpt-4o-mini}
+      TENCENT_SECRET_ID: ${TENCENT_SECRET_ID:-}
+      TENCENT_SECRET_KEY: ${TENCENT_SECRET_KEY:-}
+      APP_ENV: development
+      LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
+    ports:
+      - "28080:8080"
+    volumes:
+      - /data/CozyNanoBot/workspace:/app/workspace
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - 1panel-network
+    logging: *default-logging
+
+networks:
+  1panel-network:
+    external: true
